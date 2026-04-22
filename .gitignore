@@ -1,0 +1,6 @@
+.contexty/
+contexty.log
+*.log
+.DS_Store
+.vscode/
+.idea/
