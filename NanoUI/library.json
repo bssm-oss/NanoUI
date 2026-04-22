@@ -1,0 +1,52 @@
+{
+  "name": "NanoUI",
+  "version": "0.1.0",
+  "description": "JSON-based touch UI library for Arduino with ILI9341 displays",
+  "keywords": ["ui", "touch", "display", "ili9341", "json", "arduino"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bssm-oss/NanoUI.git"
+  },
+  "authors": [
+    {
+      "name": "YOUR_NAME",
+      "email": "your.email@example.com",
+      "maintainer": true
+    }
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/bssm-oss/NanoUI",
+  "dependencies": [
+    {
+      "name": "Adafruit ILI9341",
+      "version": "^1.6.0"
+    },
+    {
+      "name": "Adafruit GFX Library",
+      "version": "^1.11.0"
+    },
+    {
+      "name": "ArduinoJson",
+      "version": "^7.0.0"
+    }
+  ],
+  "frameworks": ["arduino"],
+  "platforms": ["atmelavr", "espressif8266", "espressif32", "stm32"],
+  "examples": [
+    {
+      "name": "Basic Button",
+      "base": "examples/basic_button",
+      "files": ["basic_button.ino"]
+    },
+    {
+      "name": "Multi Screen",
+      "base": "examples/multi_screen",
+      "files": ["multi_screen.ino"]
+    },
+    {
+      "name": "Sensor Dashboard",
+      "base": "examples/sensor_dashboard",
+      "files": ["sensor_dashboard.ino"]
+    }
+  ]
+}
