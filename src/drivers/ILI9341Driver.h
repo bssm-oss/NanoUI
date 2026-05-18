@@ -16,6 +16,7 @@ class ILI9341Driver : public IDriver {
 private:
     Adafruit_ILI9341* _tft;
     bool _ownsTft;
+    uint16_t _textFgColor;
 
 public:
     /**
@@ -44,6 +45,7 @@ public:
     void drawRGBBitmap(int16_t x, int16_t y, int16_t w, int16_t h, const uint16_t* data) override;
     void setCursor(int16_t x, int16_t y) override;
     void setTextColor(uint16_t color) override;
+    void setTextBgColor(uint16_t bg) override;
     void setTextSize(uint8_t size) override;
     void print(const char* str) override;
     void print(int n) override;

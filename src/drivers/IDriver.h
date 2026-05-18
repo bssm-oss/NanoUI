@@ -98,6 +98,13 @@ public:
     virtual void setTextColor(uint16_t color) = 0;
 
     /**
+     * @brief Set the text background color for opaque text rendering
+     * @param bg RGB565 background color; subsequent print() calls fill character
+     *           cell backgrounds with this color instead of leaving them transparent.
+     */
+    virtual void setTextBgColor(uint16_t bg) {}
+
+    /**
      * @brief Set the text size multiplier
      * @param size Size multiplier (1 = default)
      */

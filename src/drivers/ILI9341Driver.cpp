@@ -2,11 +2,13 @@
 
 namespace NanoUI {
 
-ILI9341Driver::ILI9341Driver(int8_t cs, int8_t dc, int8_t rst) : _ownsTft(true) {
+ILI9341Driver::ILI9341Driver(int8_t cs, int8_t dc, int8_t rst)
+    : _ownsTft(true), _textFgColor(0xFFFF) {
     _tft = new Adafruit_ILI9341(cs, dc, rst);
 }
 
-ILI9341Driver::ILI9341Driver(Adafruit_ILI9341* tft) : _tft(tft), _ownsTft(false) {}
+ILI9341Driver::ILI9341Driver(Adafruit_ILI9341* tft)
+    : _tft(tft), _ownsTft(false), _textFgColor(0xFFFF) {}
 
 ILI9341Driver::~ILI9341Driver() {
     if (_ownsTft && _tft) {
@@ -51,7 +53,12 @@ void ILI9341Driver::setCursor(int16_t x, int16_t y) {
 }
 
 void ILI9341Driver::setTextColor(uint16_t color) {
+    _textFgColor = color;
     _tft->setTextColor(color);
+}
+
+void ILI9341Driver::setTextBgColor(uint16_t bg) {
+    _tft->setTextColor(_textFgColor, bg);
 }
 
 void ILI9341Driver::setTextSize(uint8_t size) {
