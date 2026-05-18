@@ -4,3 +4,6 @@ contexty.log
 .DS_Store
 .vscode/
 .idea/
+.pio/
+.pioenvs/
+.piolibdeps/
