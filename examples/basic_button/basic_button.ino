@@ -1,20 +1,39 @@
 /**
  * @file basic_button.ino
- * @brief Basic button and label demo for NanoUI
- * 
- * Loads a simple UI from PROGMEM flash memory.
- * Demonstrates button press callbacks and runtime label updates.
+ * @brief NanoUI basic button & label demo (8-bit parallel ILI9341)
+ *
+ * Wiring (LOLIN D32):
+ *   CS=27  DC/RS=2  WR=4  RST=33  RD→3.3V
+ *   DB0=12  DB1=13  DB2=14  DB3=15
+ *   DB4=21  DB5=22  DB6=25  DB7=26
+ *   Touch: T_CS=5  SCK=18  MISO=19  MOSI=23
  */
 
+#include <SPI.h>
 #include <NanoUI.h>
 
-// Pin definitions for ILI9341
-#define TFT_CS   10
-#define TFT_DC   9
-#define TFT_RST  8
-#define TOUCH_CS 7
+// ── 디스플레이 핀 ───────────────────────────────────────────────────────────
+#define TFT_CS   27
+#define TFT_DC    2
+#define TFT_WR    4
+#define TFT_RST  33
 
-// UI definition stored in PROGMEM to save SRAM
+#define DB0  12
+#define DB1  13
+#define DB2  14
+#define DB3  15
+#define DB4  21
+#define DB5  22
+#define DB6  25
+#define DB7  26
+
+// ── 터치 SPI 핀 ─────────────────────────────────────────────────────────────
+#define TOUCH_CS  5
+#define SPI_SCK  18
+#define SPI_MISO 19
+#define SPI_MOSI 23
+
+// ── UI JSON ─────────────────────────────────────────────────────────────────
 const char UI_JSON[] PROGMEM = R"({
   "version": "1.0",
   "display": { "width": 320, "height": 240, "rotation": 1 },
@@ -27,13 +46,13 @@ const char UI_JSON[] PROGMEM = R"({
           "type": "label",
           "id": "lbl_title",
           "x": 10, "y": 10,
-          "text": "NanoUI Basic Demo",
+          "text": "NanoUI Demo",
           "style": { "color": "#FFFFFF", "fontSize": 2, "align": "left" }
         },
         {
           "type": "button",
           "id": "btn_press",
-          "x": 90, "y": 100, "width": 140, "height": 50,
+          "x": 90, "y": 90, "width": 140, "height": 50,
           "label": "PRESS ME",
           "style": { "bg": "#00B4D8", "text": "#FFFFFF", "radius": 8, "fontSize": 2 },
           "onPress": "buttonPressed"
@@ -59,10 +78,15 @@ void onButtonPressed(NanoUI::UIEvent evt) {
 
 void setup() {
     Serial.begin(115200);
-    while (!Serial) { ; }
+    delay(3000); // wait for serial monitor to connect before printing startup diagnostics
     Serial.println("NanoUI Basic Button Demo");
 
-    ui.begin(TFT_CS, TFT_DC, TFT_RST, TOUCH_CS);
+    SPI.begin(SPI_SCK, SPI_MISO, SPI_MOSI);
+
+    ui.beginParallel(TFT_CS, TFT_DC, TFT_WR, TFT_RST,
+                     DB0, DB1, DB2, DB3,
+                     DB4, DB5, DB6, DB7,
+                     TOUCH_CS);
 
     if (!ui.loadFromFlash(UI_JSON)) {
         Serial.println("Failed to load UI!");
@@ -70,13 +94,12 @@ void setup() {
     }
 
     ui.on("buttonPressed", onButtonPressed);
-    Serial.println("UI loaded. Touch the button!");
+    Serial.println("UI loaded!");
 }
 
 void loop() {
     ui.update();
 
-    // Update uptime label every 500ms
     static unsigned long lastUpdate = 0;
     if (millis() - lastUpdate > 500) {
         lastUpdate = millis();
