@@ -3,10 +3,12 @@
 
 #include "drivers/IDriver.h"
 #include "drivers/ILI9341Driver.h"
+#include "drivers/ILI9341ParallelDriver.h"
 #include "core/UIParser.h"
 #include "core/UIRenderer.h"
 #include "core/UIScreen.h"
 #include "core/TouchHandler.h"
+#include "core/XPT2046TouchHandler.h"
 #include "components/UIComponent.h"
 #include "components/UIButton.h"
 #include "components/UILabel.h"
@@ -50,13 +52,26 @@ public:
     ~NanoUI();
 
     /**
-     * @brief Initialize the display and touch hardware
+     * @brief Initialize with SPI ILI9341 driver
      * @param tft_cs TFT chip select pin
      * @param tft_dc TFT data/command pin
      * @param tft_rst TFT reset pin (-1 if not used)
      * @param touch_cs Touch controller chip select pin
      */
     void begin(int tft_cs, int tft_dc, int tft_rst, int touch_cs);
+
+    /**
+     * @brief Initialize with 8-bit parallel ILI9341 driver (8080 mode)
+     * @param cs   Chip select (active LOW)
+     * @param dc   Data/Command (RS) pin
+     * @param wr   Write strobe pin
+     * @param d0–d7 Data bus GPIO numbers DB0–DB7
+     * @param touch_cs SPI touch controller chip select (XPT2046)
+     */
+    void beginParallel(int cs, int dc, int wr, int rst,
+                       int d0, int d1, int d2, int d3,
+                       int d4, int d5, int d6, int d7,
+                       int touch_cs);
 
     /**
      * @brief Load UI definition from SD card file
@@ -140,7 +155,7 @@ public:
      * @brief Set a custom touch handler
      * @param handler Pointer to touch handler instance
      */
-    void setTouchHandler(TouchHandler* handler) { _touchHandler = handler; }
+    void setTouchHandler(TouchHandler* handler);
 
     /**
      * @brief Set a custom display driver
@@ -151,6 +166,7 @@ public:
 private:
     IDriver* _driver;
     ILI9341Driver* _iliDriver;
+    ILI9341ParallelDriver* _parDriver;
     UIRenderer* _renderer;
     UIParser* _parser;
     TouchHandler* _touchHandler;

@@ -45,8 +45,8 @@ public:
     }
 };
 
-NanoUI::NanoUI() 
-    : _driver(nullptr), _iliDriver(nullptr), _renderer(nullptr),
+NanoUI::NanoUI()
+    : _driver(nullptr), _iliDriver(nullptr), _parDriver(nullptr), _renderer(nullptr),
       _parser(nullptr), _touchHandler(nullptr), _ownsTouchHandler(false),
       _screenCount(0), _currentScreen(nullptr), _historyIndex(-1),
       _callbackCount(0), _touchWasPressed(false), _lastTouchX(0), _lastTouchY(0) {
@@ -59,6 +59,7 @@ NanoUI::~NanoUI() {
     if (_renderer) delete _renderer;
     if (_parser) delete _parser;
     if (_iliDriver) delete _iliDriver;
+    if (_parDriver) delete _parDriver;
     if (_ownsTouchHandler && _touchHandler) delete _touchHandler;
 }
 
@@ -73,10 +74,39 @@ void NanoUI::begin(int tft_cs, int tft_dc, int tft_rst, int touch_cs) {
     _renderer = new UIRenderer(_driver);
     _parser = new UIParser();
 
-    // Default touch handler using common pin mapping
-    // A2=YP, A3=XM, A0=YP? Actually common: XP=A2, YM=A3, XM=A0, YP=A1
-    // Using a generic mapping; users should override with setTouchHandler()
+    // Default resistive-touch pin mapping.
+    // ESP32: GPIO 34/35/36/39 are input-only — use output-capable ADC pins.
+    // AVR: use A0-A3 analog aliases.
+    // For XPT2046 or other SPI touch ICs, call setTouchHandler() to replace.
+#if defined(ESP32)
+    _touchHandler = new DefaultTouchHandler(25, 26, 32, 33);
+#elif defined(A0) && defined(A1) && defined(A2) && defined(A3)
     _touchHandler = new DefaultTouchHandler(A2, A1, A0, A3);
+#else
+    _touchHandler = new DefaultTouchHandler(32, 33, 25, 26);
+#endif
+    _ownsTouchHandler = true;
+    _touchHandler->setDisplaySize(_driver->width(), _driver->height());
+}
+
+void NanoUI::beginParallel(int cs, int dc, int wr, int rst,
+                           int d0, int d1, int d2, int d3,
+                           int d4, int d5, int d6, int d7,
+                           int touch_cs) {
+    (void)touch_cs;
+
+    _parDriver = new ILI9341ParallelDriver(
+        (int8_t)cs, (int8_t)dc, (int8_t)wr, (int8_t)rst,
+        (int8_t)d0, (int8_t)d1, (int8_t)d2, (int8_t)d3,
+        (int8_t)d4, (int8_t)d5, (int8_t)d6, (int8_t)d7);
+    _driver = _parDriver;
+    _driver->init();
+    _driver->fillScreen(0x0000);
+
+    _renderer = new UIRenderer(_driver);
+    _parser = new UIParser();
+
+    _touchHandler = new XPT2046TouchHandler((int8_t)touch_cs);
     _ownsTouchHandler = true;
     _touchHandler->setDisplaySize(_driver->width(), _driver->height());
 }
@@ -92,9 +122,28 @@ void NanoUI::setDriver(IDriver* driver) {
     }
 }
 
+void NanoUI::setTouchHandler(TouchHandler* handler) {
+    if (_ownsTouchHandler && _touchHandler && _touchHandler != handler) {
+        delete _touchHandler;
+    }
+
+    _touchHandler = handler;
+    _ownsTouchHandler = false;
+
+    if (_touchHandler && _driver) {
+        _touchHandler->setDisplaySize(_driver->width(), _driver->height());
+    }
+}
+
 bool NanoUI::loadFromSD(const char* path) {
     if (!_parser) return false;
     _screenCount = _parser->parseFromSD(path, _screens, MAX_SCREENS);
+    if (_screenCount > 0 && _driver) {
+        _driver->setRotation(_parser->getDisplayRotation());
+        if (_touchHandler) {
+            _touchHandler->setDisplaySize(_driver->width(), _driver->height());
+        }
+    }
     return _screenCount > 0;
 }
 
@@ -102,6 +151,12 @@ bool NanoUI::loadFromFlash(const char* jsonStr) {
     if (!_parser) return false;
     _screenCount = _parser->parseFromFlash(jsonStr, _screens, MAX_SCREENS);
     if (_screenCount > 0) {
+        if (_driver) {
+            _driver->setRotation(_parser->getDisplayRotation());
+            if (_touchHandler) {
+                _touchHandler->setDisplaySize(_driver->width(), _driver->height());
+            }
+        }
         // Auto-show first screen
         show(_screens[0].id);
     }
