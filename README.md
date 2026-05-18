@@ -20,16 +20,70 @@ JSON 기반 터치 디스플레이 UI 라이브러리 for ESP32
 
 ## 설치 방법
 
-### PlatformIO
+### PlatformIO (외부 프로젝트에서 사용)
 
-`platformio.ini`에 추가:
+`platformio.ini`의 `lib_deps`에 GitHub URL만 추가하면 됩니다.
+NanoUI의 의존성(Adafruit ILI9341, GFX, ArduinoJson)은 자동으로 설치됩니다.
 
 ```ini
+[env:lolin_d32]
+platform = espressif32
+board = lolin_d32
+framework = arduino
+
+lib_ldf_mode = deep+
+
 lib_deps =
     https://github.com/bssm-oss/NanoUI.git
-    adafruit/Adafruit ILI9341 @ ^1.6.0
-    adafruit/Adafruit GFX Library @ ^1.11.0
-    bblanchon/ArduinoJson @ ^7.0.0
+```
+
+#### 핀 커스터마이징
+
+기본 핀(config.h)을 오버라이드하려면 `build_flags`를 사용합니다:
+
+```ini
+build_flags =
+    -DNANOUI_SPI_TFT_CS=5
+    -DNANOUI_SPI_TFT_DC=4
+```
+
+#### 사용 예시
+
+```cpp
+#include <SPI.h>
+#include <NanoUI.h>
+
+// 기본 핀으로 간단 초기화
+NanoUI::NanoUI ui;
+
+void setup() {
+    Serial.begin(115200);
+
+    // SPI 모드 (기본 핀 사용)
+    ui.begin();
+
+    // 또는 8-bit Parallel 모드 (기본 핀 사용)
+    // SPI.begin(18, 19, 23);  // XPT2046 SPI 핀
+    // ui.beginParallel();
+
+    ui.loadFromFlash(UI_JSON);
+}
+
+void loop() {
+    ui.update();
+}
+```
+
+### 로컬 개발 (NanoUI 자체 수정 시)
+
+NanoUI 저장소를 클론하고 예제를 빌드:
+
+```bash
+git clone https://github.com/bssm-oss/NanoUI.git
+cd NanoUI
+pio run                    # 빌드
+pio run -t upload          # 업로드
+pio device monitor         # 시리얼 모니터
 ```
 
 ## 빠른 시작
@@ -175,8 +229,37 @@ NanoUI::UIImage::registerSymbol("wifi_icon", wifi_icon, 50, 50);
 ### 초기화
 
 ```cpp
+// SPI 모드 - 핀 지정
 void begin(int tft_cs, int tft_dc, int tft_rst, int touch_cs);
+
+// SPI 모드 - config.h 기본 핀 사용
+void begin();
+
+// 8-bit Parallel 모드 - 핀 지정
+void beginParallel(int cs, int dc, int wr, int rst,
+                   int d0, int d1, int d2, int d3,
+                   int d4, int d5, int d6, int d7,
+                   int touch_cs);
+
+// 8-bit Parallel 모드 - config.h 기본 핀 사용 (SPI.begin() 먼저 호출)
+void beginParallel();
 ```
+
+### 기본 핀 설정 (config.h)
+
+| 모드 | 핀 | 기본값 |
+|------|---|--------|
+| SPI | TFT_CS | 10 |
+| SPI | TFT_DC | 9 |
+| SPI | TFT_RST | 8 |
+| SPI | TOUCH_CS | 7 |
+| Parallel | CS | 27 |
+| Parallel | DC | 2 |
+| Parallel | WR | 4 |
+| Parallel | RST | 33 |
+| Parallel | DB0-DB7 | 12, 13, 14, 15, 21, 22, 25, 26 |
+| Parallel | TOUCH_CS | 5 |
+| Parallel SPI | SCK/MISO/MOSI | 18, 19, 23 |
 
 ### JSON 로드
 
