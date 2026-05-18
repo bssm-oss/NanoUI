@@ -66,9 +66,17 @@ public:
      */
     const char* getLastError() const { return _lastError; }
 
+    int16_t getDisplayWidth() const { return _displayWidth; }
+    int16_t getDisplayHeight() const { return _displayHeight; }
+    uint8_t getDisplayRotation() const { return _displayRotation; }
+
 private:
     char _lastError[48];
+    int16_t _displayWidth;
+    int16_t _displayHeight;
+    uint8_t _displayRotation;
 
+    void parseDisplay(JsonObjectConst rootObj);
     bool parseScreen(JsonObjectConst screenObj, UIScreen& screen);
     UIComponent* parseComponent(JsonObjectConst compObj);
     void parseStyle(JsonObjectConst styleObj, UIComponent* comp);

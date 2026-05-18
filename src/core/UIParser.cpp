@@ -6,10 +6,11 @@
 #include "../components/UISlider.h"
 #include "../components/UIImage.h"
 #include <string.h>
+#include <stdlib.h>
 
 namespace NanoUI {
 
-UIParser::UIParser() {
+UIParser::UIParser() : _displayWidth(320), _displayHeight(240), _displayRotation(1) {
     _lastError[0] = '\0';
 }
 
@@ -38,14 +39,17 @@ int UIParser::parseFromFlash(const char* jsonStr, UIScreen* screens, int maxScre
         return 0;
     }
 
-    JsonArray screensArr = doc["screens"];
+    JsonObjectConst rootObj = doc.as<JsonObjectConst>();
+    parseDisplay(rootObj);
+
+    JsonArrayConst screensArr = rootObj["screens"].as<JsonArrayConst>();
     if (!screensArr) {
         strncpy(_lastError, "Missing screens array", sizeof(_lastError));
         return 0;
     }
 
     int count = 0;
-    for (JsonObject screenObj : screensArr) {
+    for (JsonObjectConst screenObj : screensArr) {
         if (count >= maxScreens) break;
         if (parseScreen(screenObj, screens[count])) {
             count++;
@@ -65,7 +69,24 @@ int UIParser::parseFromSD(const char* path, UIScreen* screens, int maxScreens) {
     return -1;
 }
 
-bool UIParser::parseScreen(JsonObject screenObj, UIScreen& screen) {
+void UIParser::parseDisplay(JsonObjectConst rootObj) {
+    _displayWidth = 320;
+    _displayHeight = 240;
+    _displayRotation = 1;
+
+    JsonObjectConst displayObj = rootObj["display"].as<JsonObjectConst>();
+    if (!displayObj) return;
+
+    _displayWidth = displayObj["width"] | _displayWidth;
+    _displayHeight = displayObj["height"] | _displayHeight;
+    _displayRotation = displayObj["rotation"] | _displayRotation;
+
+    if (_displayRotation > 3) {
+        _displayRotation = 1;
+    }
+}
+
+bool UIParser::parseScreen(JsonObjectConst screenObj, UIScreen& screen) {
     const char* id = screenObj["id"];
     if (!id) {
         strncpy(_lastError, "Screen missing id", sizeof(_lastError));
@@ -76,13 +97,14 @@ bool UIParser::parseScreen(JsonObject screenObj, UIScreen& screen) {
     const char* bg = screenObj["background"];
     screen.backgroundColor = bg ? parseColor(bg) : 0x0000;
 
-    JsonArray componentsArr = screenObj["components"];
+    JsonArrayConst componentsArr = screenObj["components"].as<JsonArrayConst>();
     if (!componentsArr) return true;
 
-    for (JsonObject compObj : componentsArr) {
+    for (JsonObjectConst compObj : componentsArr) {
         if (screen.componentCount >= MAX_COMPONENTS_PER_SCREEN) break;
         UIComponent* comp = parseComponent(compObj);
         if (comp) {
+            comp->bgColor = screen.backgroundColor;
             screen.addComponent(comp);
         }
     }
@@ -90,7 +112,7 @@ bool UIParser::parseScreen(JsonObject screenObj, UIScreen& screen) {
     return true;
 }
 
-UIComponent* UIParser::parseComponent(JsonObject compObj) {
+UIComponent* UIParser::parseComponent(JsonObjectConst compObj) {
     const char* type = compObj["type"];
     if (!type) return nullptr;
 
@@ -127,7 +149,7 @@ UIComponent* UIParser::parseComponent(JsonObject compObj) {
         if (label) btn->setText(label);
         const char* action = compObj["onPress"];
         if (action) btn->setAction(action);
-        JsonObject onPressObj = compObj["onPress"];
+        JsonObjectConst onPressObj = compObj["onPress"].as<JsonObjectConst>();
         if (onPressObj) {
             const char* act = onPressObj["action"];
             if (act && strcmp(act, "navigate") == 0) {
@@ -164,7 +186,7 @@ UIComponent* UIParser::parseComponent(JsonObject compObj) {
     return comp;
 }
 
-void UIParser::parseStyle(JsonObject styleObj, UIComponent* comp) {
+void UIParser::parseStyle(JsonObjectConst styleObj, UIComponent* comp) {
     if (!styleObj || !comp) return;
 
     const char* type = comp->getType();
@@ -172,7 +194,7 @@ void UIParser::parseStyle(JsonObject styleObj, UIComponent* comp) {
     if (strcmp(type, "button") == 0) {
         UIButton* btn = static_cast<UIButton*>(comp);
         const char* bg = styleObj["bg"];
-        if (bg) btn->bgColor = parseColor(bg);
+        if (bg) btn->fillColor = parseColor(bg);
         const char* text = styleObj["text"];
         if (text) btn->textColor = parseColor(text);
         btn->radius = styleObj["radius"] | 4;

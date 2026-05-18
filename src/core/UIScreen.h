@@ -1,6 +1,7 @@
 #ifndef UI_SCREEN_H
 #define UI_SCREEN_H
 
+#include <cstring>
 #include "../components/UIComponent.h"
 
 namespace NanoUI {
