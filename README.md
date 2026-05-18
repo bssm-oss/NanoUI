@@ -2,7 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-JSON 기반 터치 디스플레이 UI 라이브러리 for Arduino.  
+JSON 기반 터치 디스플레이 UI 라이브러리 for ESP32
 사용자가 `.ui.json` 파일 하나로 UI를 정의하면, 아두이노가 이를 파싱하여 ILI9341 3.2인치 터치 디스플레이에 렌더링합니다.
 
 ---
@@ -31,18 +31,6 @@ lib_deps =
     adafruit/Adafruit GFX Library @ ^1.11.0
     bblanchon/ArduinoJson @ ^7.0.0
 ```
-
-### Arduino IDE
-
-1. [라이브러리 ZIP 다운로드](https://github.com/bssm-oss/NanoUI/archive/refs/heads/main.zip)
-2. Arduino IDE → **스케치** → **라이브러리 포함하기** → **.ZIP 라이브러리 추가...**
-3. ZIP 파일 선택
-4. 라이브러리 매니저에서 다음도 설치:
-   - `Adafruit ILI9341`
-   - `Adafruit GFX Library`
-   - `ArduinoJson`
-
----
 
 ## 빠른 시작
 

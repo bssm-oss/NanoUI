@@ -16,6 +16,7 @@
   ],
   "license": "MIT",
   "homepage": "https://github.com/bssm-oss/NanoUI",
+  "srcDir": "src",
   "dependencies": [
     {
       "name": "Adafruit ILI9341",
