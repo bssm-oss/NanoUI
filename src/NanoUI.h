@@ -1,6 +1,7 @@
 #ifndef NANO_UI_H
 #define NANO_UI_H
 
+#include "config.h"
 #include "drivers/IDriver.h"
 #include "drivers/ILI9341Driver.h"
 #include "drivers/ILI9341ParallelDriver.h"
@@ -61,6 +62,11 @@ public:
     void begin(int tft_cs, int tft_dc, int tft_rst, int touch_cs);
 
     /**
+     * @brief Initialize with SPI ILI9341 driver using default pins from config.h
+     */
+    void begin();
+
+    /**
      * @brief Initialize with 8-bit parallel ILI9341 driver (8080 mode)
      * @param cs   Chip select (active LOW)
      * @param dc   Data/Command (RS) pin
@@ -72,6 +78,11 @@ public:
                        int d0, int d1, int d2, int d3,
                        int d4, int d5, int d6, int d7,
                        int touch_cs);
+
+    /**
+     * @brief Initialize with 8-bit parallel ILI9341 using default pins from config.h
+     */
+    void beginParallel();
 
     /**
      * @brief Load UI definition from SD card file

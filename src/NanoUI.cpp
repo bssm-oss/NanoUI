@@ -89,6 +89,10 @@ void NanoUI::begin(int tft_cs, int tft_dc, int tft_rst, int touch_cs) {
     _touchHandler->setDisplaySize(_driver->width(), _driver->height());
 }
 
+void NanoUI::begin() {
+    begin(NANOUI_SPI_TFT_CS, NANOUI_SPI_TFT_DC, NANOUI_SPI_TFT_RST, NANOUI_SPI_TOUCH_CS);
+}
+
 void NanoUI::beginParallel(int cs, int dc, int wr, int rst,
                            int d0, int d1, int d2, int d3,
                            int d4, int d5, int d6, int d7,
@@ -109,6 +113,14 @@ void NanoUI::beginParallel(int cs, int dc, int wr, int rst,
     _touchHandler = new XPT2046TouchHandler((int8_t)touch_cs);
     _ownsTouchHandler = true;
     _touchHandler->setDisplaySize(_driver->width(), _driver->height());
+}
+
+void NanoUI::beginParallel() {
+    SPI.begin(NANOUI_TOUCH_SPI_SCK, NANOUI_TOUCH_SPI_MISO, NANOUI_TOUCH_SPI_MOSI);
+    beginParallel(NANOUI_PAR_CS, NANOUI_PAR_DC, NANOUI_PAR_WR, NANOUI_PAR_RST,
+                  NANOUI_PAR_DB0, NANOUI_PAR_DB1, NANOUI_PAR_DB2, NANOUI_PAR_DB3,
+                  NANOUI_PAR_DB4, NANOUI_PAR_DB5, NANOUI_PAR_DB6, NANOUI_PAR_DB7,
+                  NANOUI_PAR_TOUCH_CS);
 }
 
 void NanoUI::setDriver(IDriver* driver) {
