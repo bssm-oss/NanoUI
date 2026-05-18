@@ -40,8 +40,9 @@ public:
     bool visible;
     bool enabled;
     bool needsRedraw;
+    uint16_t bgColor; // screen background color — used to clear before redraw
 
-    UIComponent() : x(0), y(0), width(0), height(0), visible(true), enabled(true), needsRedraw(true) {
+    UIComponent() : x(0), y(0), width(0), height(0), visible(true), enabled(true), needsRedraw(true), bgColor(0x0000) {
         id[0] = '\0';
     }
 

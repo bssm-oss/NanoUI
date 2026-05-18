@@ -21,7 +21,7 @@ public:
     };
 
     char label[MAX_TEXT_LEN];
-    uint16_t bgColor;
+    uint16_t fillColor;  // button face color (separate from UIComponent::bgColor = screen bg)
     uint16_t textColor;
     uint8_t radius;
     uint8_t fontSize;
@@ -30,8 +30,8 @@ public:
     char navigateTarget[MAX_ID_LEN];
     bool isPressed;
 
-    UIButton() 
-        : bgColor(0x07E0), textColor(0xFFFF), radius(4), fontSize(2),
+    UIButton()
+        : fillColor(0x07E0), textColor(0xFFFF), radius(4), fontSize(2),
           actionType(ActionType::Callback), isPressed(false) {
         label[0] = '\0';
         actionName[0] = '\0';

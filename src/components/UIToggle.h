@@ -19,9 +19,10 @@ public:
     uint16_t activeColor;
     uint16_t inactiveColor;
     char actionName[MAX_ID_LEN];
+    bool isPressed;
 
     UIToggle() 
-        : toggled(false), activeColor(0x07E0), inactiveColor(0x7BEF) {
+        : toggled(false), activeColor(0x07E0), inactiveColor(0x7BEF), isPressed(false) {
         actionName[0] = '\0';
     }
 

@@ -22,11 +22,22 @@ void UIToggle::draw(IDriver* driver) {
 bool UIToggle::handleTouch(int16_t touchX, int16_t touchY, bool pressed) {
     if (!enabled || !visible) return false;
 
-    if (pressed && contains(touchX, touchY)) {
-        toggled = !toggled;
-        needsRedraw = true;
+    bool inside = contains(touchX, touchY);
+
+    if (pressed && inside) {
+        if (!isPressed) {
+            toggled = !toggled;
+            needsRedraw = true;
+            isPressed = true;
+        }
         return true;
     }
+
+    if (!pressed && isPressed) {
+        isPressed = false;
+        return inside;
+    }
+
     return false;
 }
 

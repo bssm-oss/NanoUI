@@ -1,22 +1,45 @@
 #include "UIButton.h"
 #include <string.h>
+#include <Arduino.h>
 
 namespace NanoUI {
 
 void UIButton::draw(IDriver* driver) {
     if (!driver || !visible) return;
 
-    uint16_t drawBg = isPressed ? (uint16_t)(((bgColor >> 1) & 0x7BEF) | 0x0000) : bgColor;
+    uint16_t drawFill = isPressed ? (uint16_t)((fillColor >> 1) & 0x7BEF) : fillColor;
 
-    // Draw rounded rectangle background
-    driver->fillRect(x + radius, y, width - 2 * radius, height, drawBg);
-    driver->fillRect(x, y + radius, width, height - 2 * radius, drawBg);
-    driver->fillCircle(x + radius, y + radius, radius, drawBg);
-    driver->fillCircle(x + width - radius - 1, y + radius, radius, drawBg);
-    driver->fillCircle(x + radius, y + height - radius - 1, radius, drawBg);
-    driver->fillCircle(x + width - radius - 1, y + height - radius - 1, radius, drawBg);
+    Serial.printf("[Btn %s] fillColor=0x%04X drawFill=0x%04X bgColor=0x%04X x=%d y=%d w=%d h=%d r=%d\n",
+                  id, (unsigned)fillColor, (unsigned)drawFill, (unsigned)UIComponent::bgColor,
+                  (int)x, (int)y, (int)width, (int)height, (int)radius);
 
-    // Draw text centered
+    // Erase previous button area using screen background color
+    driver->fillRect(x, y, width, height, UIComponent::bgColor);
+
+    // Draw rounded rectangle using horizontal scanlines (fillRect only — no Adafruit_GFX fillCircle)
+    int16_t r = radius;
+    for (int16_t dy = 0; dy < height; dy++) {
+        int16_t indent = 0;
+        if (r > 0) {
+            if (dy < r) {
+                int16_t dist = r - dy;
+                // indent = r - floor(sqrt(r^2 - dist^2))
+                int16_t sq = (int16_t)(r * r - dist * dist);
+                int16_t root = 0;
+                while ((root + 1) * (root + 1) <= sq) root++;
+                indent = r - root;
+            } else if (dy >= height - r) {
+                int16_t dist = dy - (height - r - 1);
+                int16_t sq = (int16_t)(r * r - dist * dist);
+                int16_t root = 0;
+                while ((root + 1) * (root + 1) <= sq) root++;
+                indent = r - root;
+            }
+        }
+        driver->fillRect(x + indent, y + dy, width - 2 * indent, 1, drawFill);
+    }
+
+    // Draw text centered (transparent bg — button face already filled above)
     driver->setTextColor(textColor);
     driver->setTextSize(fontSize);
 
