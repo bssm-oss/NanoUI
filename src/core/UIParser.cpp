@@ -22,7 +22,7 @@ uint16_t UIParser::parseColor(const char* hexStr) {
     uint8_t g = (rgb >> 8) & 0xFF;
     uint8_t b = rgb & 0xFF;
     
-    return ((r & 0xF8) << 8) | ((g & 0xFC) << 3) | (b >> 3);
+    return ((r >> 3) << 11) | ((g >> 2) << 5) | (b >> 3);
 }
 
 int UIParser::parseFromFlash(const char* jsonStr, UIScreen* screens, int maxScreens) {
